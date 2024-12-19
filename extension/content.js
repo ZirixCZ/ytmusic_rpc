@@ -4,6 +4,7 @@ const PORT = 6587;
 const playerBar = document.querySelector("ytmusic-player-bar");
 
 function timestampToSeconds(timestamp) {
+  if (!timestamp) return 0;
   const [minutes, seconds] = timestamp.split(":").map((x) => parseInt(x, 10));
   return minutes * 60 + seconds;
 }
@@ -18,26 +19,30 @@ function getNowPlaying() {
     "yt-formatted-string.title.ytmusic-player-bar",
   ).innerHTML;
   const items = outer.querySelectorAll(
-    "a.yt-simple-endpoint.yt-formatted-string",
+    "yt-simple-endpoint style-scope yt-formatted-string",
   );
-  const artist = items.item(0).innerHTML;
-  const album = items.item(1).innerHTML;
+  const album = items?.item?.(1)?.innerHTML;
 
-  const leftControls = playerBar.querySelector(
-    ".left-controls",
+  const artistElement = playerBar.querySelector(
+    "a.yt-simple-endpoint.style-scope.yt-formatted-string",
   );
+  const artist = artistElement ? artistElement.textContent : "Artist not found";
+
+  const leftControls = playerBar.querySelector(".left-controls");
   const playPauseButton = leftControls.querySelector("#play-pause-button");
   const isPlaying = playPauseButton.getAttribute("aria-label") === "Pause";
-  const [elapsed, total] = leftControls.querySelector(
-    "span.time-info.ytmusic-player-bar",
-  )
-    .innerHTML.trim().split(" / ");
+  const [elapsed, total] = leftControls
+    .querySelector("time-info style-scope ytmusic-player-bar")
+    .innerHTML.trim()
+    .split(" / ");
 
-  const listItem = document.querySelector(
-    `ytmusic-responsive-list-item-renderer.ytmusic-playlist-shelf-renderer[play-button-state="playing"]`,
-  ) || document.querySelector(
-    `ytmusic-responsive-list-item-renderer.ytmusic-playlist-shelf-renderer[play-button-state="paused"]`,
-  );
+  const listItem =
+    document.querySelector(
+      `ytmusic-responsive-list-item-renderer.ytmusic-playlist-shelf-renderer[play-button-state="playing"]`,
+    ) ||
+    document.querySelector(
+      `ytmusic-responsive-list-item-renderer.ytmusic-playlist-shelf-renderer[play-button-state="paused"]`,
+    );
 
   let url;
 
@@ -131,11 +136,12 @@ function transformMusicActivity(data) {
   return {
     details: data.title,
     state: data.artist,
-    timestamps: data.isPlaying && !isNaN(data.elapsed) && !isNaN(data.total)
-      ? {
-        end: Date.now() + (data.total - data.elapsed) * 1000,
-      }
-      : undefined,
+    timestamps:
+      data.isPlaying && !isNaN(data.elapsed) && !isNaN(data.total)
+        ? {
+            end: Date.now() + (data.total - data.elapsed) * 1000,
+          }
+        : undefined,
     assets: {
       large_image: data.thumbnail,
       large_text: data.album,
@@ -144,11 +150,11 @@ function transformMusicActivity(data) {
     },
     buttons: data.url
       ? [
-        {
-          label: "Listen on YouTube Music",
-          url: data.url,
-        },
-      ]
+          {
+            label: "Listen on YouTube Music",
+            url: data.url,
+          },
+        ]
       : undefined,
   };
 }
