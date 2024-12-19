@@ -31,8 +31,10 @@ function getNowPlaying() {
   const leftControls = playerBar.querySelector(".left-controls");
   const playPauseButton = leftControls.querySelector("#play-pause-button");
   const isPlaying = playPauseButton.getAttribute("aria-label") === "Pause";
-  const [elapsed, total] = leftControls
-    .querySelector("time-info style-scope ytmusic-player-bar")
+  const leftControlsItems = leftControls.querySelectorAll("span");
+
+  const [elapsed, total] = leftControlsItems
+    ?.item(0)
     .innerHTML.trim()
     .split(" / ");
 
